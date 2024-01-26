@@ -10,11 +10,15 @@ int morseLetters[][4] = {{1,3},{3,1,1,1},{3,1,3,1},{3,1,1},{1},{1,1,3,1},{3,3,1}
 
 int morseNumbers[][5] = {{3,3,3,3,3},{1,3,3,3,3},{1,1,3,3,3},{1,1,1,3,3},{1,1,1,1,3},{1,1,1,1,1},{3,1,1,1,1},{3,3,1,1,1},{3,3,3,1,1},{3,3,3,3,1}};
 
+char * words[][6] = {"shell", "halls", "slick", "trick", "boxes", "leaks", "strobe", "bistro", "flick", "bombs", "break", "brick", "steak", "sting", "vector", "beats"};
+
 int potPin = 28;
+int ledPin = 16;
 int del = 500;
-int dotDelay = 200;
+int dotDelay = 1000;
 int finalSeq[] = {};
 int *sequence[] = {};
+char challenge[6];
 
 static const PROGMEM uint8_t alphafonttable[] = {
     0b01001111, // 0
@@ -32,13 +36,13 @@ static const PROGMEM uint8_t alphafonttable[] = {
 
 
 Adafruit_AlphaNum4 alpha4 = Adafruit_AlphaNum4();
-ledPin = Pin(16, Pin.OUT);
+
 
 int map(int x, float in_min, float in_max, float out_min, float out_max){
   return int((x-in_min) * (out_max-out_min) / (in_max - in_min) + out_min);
 }
 
-void flashSequence(int* sequence){
+void flashSequence(int sequence[]){
   int i = 0;
   while (sequence[i] != NULL) {
     flash(sequence[i]);
@@ -48,32 +52,41 @@ void flashSequence(int* sequence){
 }
 
 void flash(int delayMultiplyer){
-  ledPin.high();
-  delay(dotDelay* delayMultiplyer)
-  ledPin.low();
+  digitalWrite(ledPin, HIGH);
+  delay((dotDelay * delayMultiplyer));
+  digitalWrite(ledPin, LOW);
 }
 
 
 void setup() {
+  pinMode(ledPin, OUTPUT);
   Serial.begin(9600);
   
   alpha4.begin(0x70);  // pass in the address
   Serial.println("Start typing to display!");
+
+  randomSeed(analogRead(26));
+  int randNum = random(0, 16);
+  memcpy(challenge, words[randNum], 6);
 }
 
 
 char displaybuffer[4] = {'3', ' ', ' ', ' '};
 
-void loop() {
 
+
+void loop() {
+  int i = 0;
+  char ch = challenge[i];
   if(ch >= 'a' && ch <= 'z'){
     flashSequence(morseLetters[ch-'a']);
   }
   else if (ch >='0' && ch <= '9'){
-    flashSequence(morseNumbers[ch-'0'])
+    flashSequence(morseNumbers[ch-'0']);
   }
   else if (ch == ' '){
-    flashSeqyence([4])
+    int space[] = {4};
+    flashSequence(space);
   }
   
   int num = map(analogRead(potPin), 0, 1023, 0, 15);
@@ -182,4 +195,5 @@ void loop() {
   // write it out!
   alpha4.writeDisplay();
   delay(200);
+  i++;
 }
