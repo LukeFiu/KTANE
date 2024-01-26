@@ -6,16 +6,26 @@
 #include <Adafruit_GFX.h>
 #include "Adafruit_LEDBackpack.h"
 
-int morseLetters[][4] = {{1,3},{3,1,1,1},{3,1,3,1},{3,1,1},{1},{1,1,3,1},{3,3,1},{1,1,1,1},{1,1},{1,3,3,3},{3,1,3},{1,3,1,1},{3,3},{3,1},{3,3,3},{1,3,3,1},{3,3,1,3},{1,3,1},{1,1,1},{3},{1,1,3},{1,1,1,3},{1,3,3},{3,1,1,3},{3,1,3,3},{3,3,1,1}};
+//For letters
+char* letters[] = {
+".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", // A-I
+".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", // J-R 
+"...", "-", "..-", "...-", ".--", "-..-", "-.--", "--.." // S-Z
+};
 
-int morseNumbers[][5] = {{3,3,3,3,3},{1,3,3,3,3},{1,1,3,3,3},{1,1,1,3,3},{1,1,1,1,3},{1,1,1,1,1},{3,1,1,1,1},{3,3,1,1,1},{3,3,3,1,1},{3,3,3,3,1}};
+//For Numbers
+char* numbers[] = {
+  "-----", ".----", "..---", "...--", "....-", ".....",
+"-....", "--...", "---..", "----."
+};
 
-char * words[][6] = {"shell", "halls", "slick", "trick", "boxes", "leaks", "strobe", "bistro", "flick", "bombs", "break", "brick", "steak", "sting", "vector", "beats"};
+char * words[] = {"shell", "halls", "slick", "trick", "boxes", "leaks", "strobe", "bistro", "flick", "bombs", "break", "brick", "steak", "sting", "vector", "beats"};
 
-int potPin = 28;
-int ledPin = 16;
+int potPinB = 28;
+int potPinA = 27;
+int ledPin = 15;
 int del = 500;
-int dotDelay = 1000;
+int dotDelay = 200;
 int finalSeq[] = {};
 int *sequence[] = {};
 char challenge[6];
@@ -42,19 +52,24 @@ int map(int x, float in_min, float in_max, float out_min, float out_max){
   return int((x-in_min) * (out_max-out_min) / (in_max - in_min) + out_min);
 }
 
-void flashSequence(int sequence[]){
-  int i = 0;
-  while (sequence[i] != NULL) {
-    flash(sequence[i]);
-  i++;
-  }
-  delay(dotDelay * 3);
+void flashSequence(char* sequence) {
+int i = 0;
+while (sequence[i] != NULL) {
+        flashDotOrDash(sequence[i]);
+i++; }
+delay(dotDelay * 3);
 }
 
-void flash(int delayMultiplyer){
-  digitalWrite(ledPin, HIGH);
-  delay((dotDelay * delayMultiplyer));
-  digitalWrite(ledPin, LOW);
+
+void flashDotOrDash(char dotOrDash) {
+digitalWrite(ledPin, HIGH); if (dotOrDash == '.')
+{
+    delay(dotDelay);
+  }
+else // must be a - 
+{
+delay(dotDelay * 3); }
+digitalWrite(ledPin, LOW); delay(dotDelay);
 }
 
 
@@ -74,22 +89,30 @@ void setup() {
 char displaybuffer[4] = {'3', ' ', ' ', ' '};
 
 
-
+int i = 0;
 void loop() {
-  int i = 0;
-  char ch = challenge[i];
-  if(ch >= 'a' && ch <= 'z'){
-    flashSequence(morseLetters[ch-'a']);
+  char ch;
+  if (i > strlen(challenge)){
+    delay(dotDelay * 4);
+    i = 0;
+  };
+  ch = challenge[i]; // read a single letter if (ch >= 'a' && ch <= 'z')
+  Serial.print(ch);
+  if (ch >= 'a' && ch <= 'z') {
+    flashSequence(letters[ch - 'a']);
   }
-  else if (ch >='0' && ch <= '9'){
-    flashSequence(morseNumbers[ch-'0']);
-  }
-  else if (ch == ' '){
-    int space[] = {4};
-    flashSequence(space);
-  }
+  else if (ch >= 'A' && ch <= 'Z') {
+    flashSequence(letters[ch - 'A']); }
+  else if (ch >= '0' && ch <= '9') {
+    flashSequence(numbers[ch - '0']); }
   
-  int num = map(analogRead(potPin), 0, 1023, 0, 15);
+  // Serial.println(analogRead(potPinA));
+  // Serial.println(analogRead(potPinB));
+  // Serial.println();
+  int measureOne = analogRead(potPinA);
+  int measureTwo = analogRead(potPinB);
+
+  int num = map((measureOne + measureTwo)/2, 0, 1023, 0, 16);
 
   switch (num) {
     case 0:
