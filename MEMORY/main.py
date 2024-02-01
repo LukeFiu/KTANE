@@ -6,6 +6,7 @@ debounceTime = 0
 interuptFlag = 0
 buttonsPressed = []
 stage = 0
+win = False
 
 sdaPin =  Pin(16, Pin.PULL_UP)
 sclPin = Pin(17, Pin.PULL_UP)
@@ -202,10 +203,10 @@ def callbackThree(buttonThree):
 buttonThree.irq(trigger=Pin.IRQ_RISING, handler=callbackThree)
 
 def getButtonPress():
-    buttonsPressed.clear()
-    while True:
-        if len(buttonsPressed) != 0:
-            return buttonsPressed.pop(0)
+    if len(buttonsPressed) != 0:
+        button = buttonsPressed.pop(0)
+        buttonsPressed.clear()
+        return button
         
 def checkButton(pressed, stage):
     print(f"pressed: ", pressed)
@@ -273,24 +274,27 @@ initI2CIO8()
 writeMCP23xxxReg(MCP23008_IODIR, 0x00)
 MCPDisplayStage(stage)
 while True:
-    #display stage
-    displayStage(stage, stages)
-    #check for button press
-    button = getButtonPress()
-    #if correct increment stage else reset to stage 1
-    if checkButton(button, stage):
-        print("success")
-        blankSegments()
-        stage += 1
-        MCPDisplayStage(stage)
-        if stage == 5:
-            break
-
-    else:
-        print("fail")
-        initMemory()
-        stage=0
-        MCPDisplayStage(stage)
+    while win != True:
+        #display stage
+        displayStage(stage, stages)
+        #check for button press
+        button = getButtonPress()
+        if button != None:
+        #if correct increment stage else reset to stage 1
+            if checkButton(button, stage):
+                print("success")
+                blankSegments()
+                stage += 1
+                MCPDisplayStage(stage)
+                if stage == 5:
+                    win = True
+            else:
+                print("fail")
+                initMemory()
+                stage=0
+                writeMCP23xxxReg(MCP23008_GPIO,0x40)
+                time.sleep(1)
+                MCPDisplayStage(stage)
 
      
 
