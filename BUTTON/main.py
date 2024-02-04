@@ -34,9 +34,9 @@ indB.freq(1000)
 
 blue = (0,0,255)
 red = (255,0,0)
-white = (255,255,255)
-yellow = (255,255,0)
-purple = (255,0,255)
+white = (255,200,200)
+yellow = (255,100,0)
+purple = (255,0,225)
 
 buttonColours = (blue, red, white, yellow, purple)
 indicatorColours = (blue, red, white, yellow)
@@ -53,7 +53,7 @@ interruptFlag = 0
 debounceTime = 0
 
 litIndicators = {"CAR", "FRK"}
-numBatteries = 3
+numBatteries = 0
 needsHold = None
 releaseDigit = None
 checkSolution = False
